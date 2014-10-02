@@ -7026,10 +7026,10 @@ var equiv = function () {
     var editTemplates = Alpaca.Create(Alpaca.EmptyViewTemplates, {
         // Templates for control fields
         "controlFieldOuterEl": '<div class="form-group">{{html this.html}}</div>',
-        "controlFieldMessage": '<span class="glyphicon glyphicon-exclamation-sign"></span><span class="help-block alpaca-controlfield-message-text">${message}</span>',
+        "controlFieldMessage": '<div class="help-block"><span class="glyphicon glyphicon-exclamation-sign"></span><span class="alpaca-controlfield-message-text">${message}</span></div>',
         "controlFieldLabel": '{{if options.label}}<label class="{{if options.labelClass}}${options.labelClass}{{/if}} control-label" for="${id}">${options.label}</label>{{/if}}',
         "controlFieldHelper": '<p class="{{if options.helperClass}}${options.helperClass}{{/if}}">{{if options.helper}}<i class="glyphicon glyphicon-info-sign alpaca-helper-icon"></i>${options.helper}</p>{{/if}}',
-        "controlFieldContainer": '<div>{{html this.html}}</div>',
+        "controlFieldContainer": '<div class="alpaca-controlfield-message-container">{{html this.html}}</div>',
         "controlField": '{{wrap(null, {}) Alpaca.fieldTemplate(this,"controlFieldOuterEl",true)}}{{html Alpaca.fieldTemplate(this,"controlFieldLabel")}}{{wrap(null, {}) Alpaca.fieldTemplate(this,"controlFieldContainer",true)}}{{html Alpaca.fieldTemplate(this,"controlFieldHelper")}}{{/wrap}}{{/wrap}}',
         // Templates for container fields
         "fieldSetOuterEl": '<fieldset>{{html this.html}}</fieldset>',
@@ -7041,7 +7041,7 @@ var equiv = function () {
         "fieldSetItemContainer": '<div></div>',
         // Templates for form
         "formFieldsContainer": '<div>{{html this.html}}</div>',
-        "formButtonsContainer": '<div>{{if options.buttons}}{{each(k,v) options.buttons}}<button data-key="${k}" class="alpaca-form-button alpaca-form-button-${k} btn btn-default" {{each(k1,v1) v}}${k1}="${v1}"{{/each}}>${v.value}</button>{{/each}}{{/if}}</div>',
+        "formButtonsContainer": '<div class="btn-group">{{if options.buttons}}{{each(k,v) options.buttons}}<button data-key="${k}" class="alpaca-form-button alpaca-form-button-${k} btn btn-default {{if v.class}}${v.class}{{/if}}" {{each(k1,v1) v}}${k1}="${v1}"{{/each}}>${v.value}</button>{{/each}}{{/if}}</div>',
         "form": '<form role="form">{{html Alpaca.fieldTemplate(this,"formFieldsContainer")}}{{html Alpaca.fieldTemplate(this,"formButtonsContainer")}}</form>',
         // Templates for wizard
         "wizardStep" : '<div class="alpaca-clear"></div>',
@@ -7122,7 +7122,22 @@ var equiv = function () {
                 $(targetDiv).find("input[type=radio]").parent().addClass("radio-inline");
             }
 
-            // TODO: form-horizontal?
+            // if form has "form-horizontal" class, then radio and checkbox labels get inline classes
+            if ($(targetDiv).parents("form").hasClass("form-horizontal"))
+            {
+                if ( $(targetDiv).hasClass("form-group") )
+                {
+                    var labelClass = "col-sm-4";
+                    var fieldClass = "col-sm-7";
+                    if (!Alpaca.isEmpty(this.parent.options.form.attributes.labelClass))
+                        labelClass = this.parent.options.form.attributes.labelClass;
+                    if (!Alpaca.isEmpty(this.parent.options.form.attributes.fieldClass))
+                        fieldClass = this.parent.options.form.attributes.fieldClass;
+
+                    $(targetDiv).children("label").addClass(labelClass);
+                    $(targetDiv).children("div").addClass(fieldClass);
+                }
+            }
         },
 
         // icons
@@ -8568,6 +8583,8 @@ var equiv = function () {
                             _this.messageElement.attr("id", _this.getId() + '-field-message-' + index);
                             // check to see if we have a message container rendered
                             if ($('.alpaca-controlfield-message-container', _this.getEl()).length) {
+                                var id = _this.messageElement.attr('id');
+                                $('#'+id, _this.getEl()).remove();
                                 _this.messageElement.appendTo($('.alpaca-controlfield-message-container', _this.getEl()));
                             } else {
                                 _this.messageElement.appendTo(_this.getEl());
